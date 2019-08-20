@@ -7,5 +7,7 @@ setup(name="pydsb",
       author="Moritz Jannasch",
       author_email="contact@moritzj.de",
       license="MIT",
-      packages=["pydsb"]
-      )
+      packages=["pydsb"],
+      install_requires=[
+          "requests"
+      ])
