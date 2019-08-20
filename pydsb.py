@@ -18,6 +18,18 @@ class PyDSB:
 
         self.token = token
 
+    def get_items(self):
+        req = requests.get(f"{self.URL}/timetables/{self.token}")
+        items = req.json()
+
+        return [
+            {"is_html": item["ishtml"],
+             "uploaded_date": item["timetabledate"],
+             "group": item["timetablegroupname"],
+             "title": item["timetabletitle"],
+             "url": item["timetableurl"]} for item in items
+        ]
+
 
 class LoginError(Exception):
     pass
