@@ -18,7 +18,7 @@ class PyDSB:
 
         self.token = token
 
-    def get_items(self):
+    def get_plans(self):
         req = requests.get(f"{self.URL}/timetables/{self.token}")
         items = req.json()
 

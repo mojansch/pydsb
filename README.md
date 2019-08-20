@@ -12,4 +12,4 @@ Python API for DSBmobile
     dsb = pydsb.PyDSB("username", "password")
     dsb.login()
     
-    dsb.get_items()
+    dsb.get_plans()
