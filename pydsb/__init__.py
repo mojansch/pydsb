@@ -30,6 +30,21 @@ class PyDSB:
              "url": item["timetableurl"]} for item in items
         ]
 
+    def get_news(self):
+        req = requests.get(f"{self.URL}/news/{self.token}")
+        items = req.json()
+
+        return [
+            {
+                "headline": item["headline"],
+                "news_date": item["newsdate"],
+                "id": item["newsid"],
+                "image_url": item["imageurl"],
+                "short_message": item["shortmessage"],
+                "message": item["wholemessage"]
+            } for item in items if item["newsid"] != "00000000-0000-0000-0000-000000000000"
+        ]
+
 
 class LoginError(Exception):
     pass
