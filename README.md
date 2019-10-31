@@ -1,3 +1,5 @@
+**Currently not working because Heinekingmedia removed an API. I'm currently working on an update using another API**
+
 # pydsb
 Python API for DSBmobile
 
