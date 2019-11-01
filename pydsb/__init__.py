@@ -1,49 +1,74 @@
+import base64
+import datetime
+import gzip
+import io
+import json
+import uuid
+
 import requests
 
 
 class PyDSB:
-    URL = "https://iphone.dsbcontrol.de/iPhoneService.svc/DSB"
+    URL = "https://app.dsbcontrol.de/JsonHandler.ashx/GetData"
 
     def __init__(self, username=None, password=None):
         self.username = username
         self.password = password
-        self.token = None
 
-    def login(self):
-        req = requests.get(f"{self.URL}/authid/{self.username}/{self.password}")
-        token = req.text.strip("\"")
+    def fetch_data(self):
+        time = datetime.datetime.now().isoformat()
+        time = time.split(".")[0] + "." + time.split(".")[1][:3] + "Z"
 
-        if token == "00000000-0000-0000-0000-000000000000":
-            raise LoginError("Wrong username or password")
+        data = {
+            "UserId": self.username,
+            "UserPw": self.password,
+            "AppVersion": "2.5.9",
+            "Language": "de",
+            "OsVersion": "27 8.1.0",
+            "AppId": str(uuid.uuid4()),
+            "Device": "Pixel 3",
+            "BundleId": "de.heinekingmedia.dsbmobile",
+            "Date": time,
+            "LastUpdate": time,
+        }
 
-        self.token = token
+        stream = io.BytesIO()
+        with gzip.open(filename=stream, mode="wt") as stream_gz:
+            stream_gz.write(json.dumps(data))
+        req = requests.post(
+            "https://app.dsbcontrol.de/JsonHandler.ashx/GetData",
+            json={
+                "req": {
+                    "Data": base64.encodebytes(stream.getvalue()).decode("utf-8"),
+                    "DataType": 1,
+                }
+            },
+        )
+
+        returndata = json.loads(
+            gzip.decompress(base64.b64decode(json.loads(req.text)["d"]))
+        )
+        plans = returndata["ResultMenuItems"][0]["Childs"][1]["Root"]["Childs"]
+        news = returndata["ResultMenuItems"][0]["Childs"][0]["Root"]["Childs"]
+
+        return {"plans": plans, "news": news}
 
     def get_plans(self):
-        req = requests.get(f"{self.URL}/timetables/{self.token}")
-        items = req.json()
+        raw_plans = self.fetch_data()["plans"]
+        plans = []
+        for plan in raw_plans:
+            for i in plan["Childs"]:
+                plans.append(
+                    {
+                        "is_html": True if i["ConType"] == 3 else False,
+                        "uploaded_date": i["Date"],
+                        "title": i["Title"],
+                        "url": i["Detail"],
+                        "preview_url": "https://app.dsbcontrol.de/data/" + i["Preview"],
+                    }
+                )
 
-        return [
-            {"is_html": item["ishtml"],
-             "uploaded_date": item["timetabledate"],
-             "group": item["timetablegroupname"],
-             "title": item["timetabletitle"],
-             "url": item["timetableurl"]} for item in items
-        ]
-
-    def get_news(self):
-        req = requests.get(f"{self.URL}/news/{self.token}")
-        items = req.json()
-
-        return [
-            {
-                "headline": item["headline"],
-                "news_date": item["newsdate"],
-                "id": item["newsid"],
-                "image_url": item["imageurl"],
-                "short_message": item["shortmessage"],
-                "message": item["wholemessage"]
-            } for item in items if item["newsid"] != "00000000-0000-0000-0000-000000000000"
-        ]
+        return plans
 
 
 class LoginError(Exception):
