@@ -48,13 +48,20 @@ class PyDSB:
         returndata = json.loads(
             gzip.decompress(base64.b64decode(json.loads(req.text)["d"]))
         )
-        plans = returndata["ResultMenuItems"][0]["Childs"][1]["Root"]["Childs"]
-        news = returndata["ResultMenuItems"][0]["Childs"][0]["Root"]["Childs"]
 
-        return {"plans": plans, "news": news}
+        plans = [
+            item
+            for item in returndata["ResultMenuItems"][0]["Childs"]
+            if item["Title"] == "Pläne"
+        ]
+
+        return {"plans": plans}
 
     def get_plans(self):
-        raw_plans = self.fetch_data()["plans"]
+        try:
+            raw_plans = self.fetch_data()["plans"][0]["Root"]["Childs"]
+        except IndexError:
+            return []
         plans = []
         for plan in raw_plans:
             for i in plan["Childs"]:
