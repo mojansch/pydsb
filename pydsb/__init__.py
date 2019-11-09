@@ -95,6 +95,3 @@ class PyDSB:
 
         return news
 
-
-class LoginError(Exception):
-    pass
