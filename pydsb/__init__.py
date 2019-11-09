@@ -54,8 +54,13 @@ class PyDSB:
             for item in returndata["ResultMenuItems"][0]["Childs"]
             if item["Title"] == "Pläne"
         ]
+        news = [
+            item
+            for item in returndata["ResultMenuItems"][0]["Childs"]
+            if item["Title"] == "News"
+        ]
 
-        return {"plans": plans}
+        return {"plans": plans, "news": news}
 
     def get_plans(self):
         try:
@@ -76,6 +81,19 @@ class PyDSB:
                 )
 
         return plans
+
+    def get_news(self):
+        try:
+            raw_news = self.fetch_data()["news"][0]["Root"]["Childs"]
+        except IndexError:
+            return []
+        news = []
+        for i in raw_news:
+            news.append(
+                {"title": i["Title"], "date": i["Date"], "content": i["Detail"]}
+            )
+
+        return news
 
 
 class LoginError(Exception):

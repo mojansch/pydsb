@@ -7,7 +7,7 @@ I strongly reccomend that users of version 1.0 upgrade to 2.0, because it doesn'
 ## Features
 
 - [x] Getting plans
-- [ ] Getting news
+- [x] Getting news (maybe not always working due to limited sample data)
 - [ ] Getting postings (Aushänge)
 
 ## Installation
