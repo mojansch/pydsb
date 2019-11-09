@@ -59,8 +59,13 @@ class PyDSB:
             for item in returndata["ResultMenuItems"][0]["Childs"]
             if item["Title"] == "News"
         ]
+        postings = [
+            item
+            for item in returndata["ResultMenuItems"][0]["Childs"]
+            if item["Title"] == "Aushänge"
+        ]
 
-        return {"plans": plans, "news": news}
+        return {"plans": plans, "news": news, "postings": postings}
 
     def get_plans(self):
         try:
@@ -95,3 +100,21 @@ class PyDSB:
 
         return news
 
+    def get_postings(self):
+        try:
+            raw_postings = self.fetch_data()["postings"][0]["Root"]["Childs"]
+        except IndexError:
+            return []
+        postings = []
+        for posting in raw_postings:
+            for i in posting["Childs"]:
+                postings.append(
+                    {
+                        "uploaded_date": i["Date"],
+                        "title": i["Title"],
+                        "url": i["Detail"],
+                        "preview_url": "https://app.dsbcontrol.de/data/" + i["Preview"],
+                    }
+                )
+
+        return postings
