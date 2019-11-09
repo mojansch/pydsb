@@ -1,4 +1,4 @@
-# pydsb
+# pydsb 2.0.1
 pydsb provides a Python API for DSBmobile.
 
 Heinekingmedia (the creators of DSBmobile) shut down the API pydsb was previously using so I had to use the app-API. That required a complete rewrite so some features are currently not implemented yet. See below for the current featureset.
