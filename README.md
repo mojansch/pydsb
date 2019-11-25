@@ -1,4 +1,4 @@
-# pydsb 2.1.0
+# pydsb 2.1.1
 pydsb provides a Python API for DSBmobile.
 
 Heinekingmedia (the creators of DSBmobile) shut down the API pydsb was previously using so I had to use the app-API. That required a complete rewrite so some features are currently not implemented yet. See below for the current featureset.
@@ -21,3 +21,5 @@ I strongly reccomend that users of version 1.0 upgrade to 2.0, because it doesn'
     dsb = pydsb.PyDSB("username", "password")
     
     print(dsb.get_plans())
+    print(dsb.get_postings())
+    print(dsb.get_news())
