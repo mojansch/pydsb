@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(name="pydsb",
-                 version="2.1.1",
+                 version="2.2.0",
                  description="Python API for DSBmobile",
                  long_description=long_description,
                  long_description_content_type="text/markdown",

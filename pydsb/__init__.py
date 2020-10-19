@@ -1,119 +1,56 @@
-import base64
-import datetime
-import gzip
-import io
-import json
-import uuid
-
 import requests
+
+BASE_URL = "https://mobileapi.dsbcontrol.de"
 
 
 class PyDSB:
-    URL = "https://app.dsbcontrol.de/JsonHandler.ashx/GetData"
-
-    def __init__(self, username=None, password=None):
+    def __init__(self, username: str = None, password: str = None):
         self.username = username
         self.password = password
 
-    def fetch_data(self):
-        time = datetime.datetime.now().isoformat()
-        time = time.split(".")[0] + "." + time.split(".")[1][:3] + "Z"
+        self.token = requests.get(
+            BASE_URL + "/authid?bundleid=de.heinekingmedia.dsbmobile&appversion=35&osversion=22&pushid",
+            params=dict(user=self.username, password=self.password)).text.replace("\"", "")
 
-        data = {
-            "UserId": self.username,
-            "UserPw": self.password,
-            "AppVersion": "2.5.9",
-            "Language": "de",
-            "OsVersion": "27 8.1.0",
-            "AppId": str(uuid.uuid4()),
-            "Device": "Pixel 3",
-            "BundleId": "de.heinekingmedia.dsbmobile",
-            "Date": time,
-            "LastUpdate": time,
-        }
-
-        stream = io.BytesIO()
-        with gzip.open(filename=stream, mode="wt") as stream_gz:
-            stream_gz.write(json.dumps(data))
-        req = requests.post(
-            "https://app.dsbcontrol.de/JsonHandler.ashx/GetData",
-            json={
-                "req": {
-                    "Data": base64.encodebytes(stream.getvalue()).decode("utf-8"),
-                    "DataType": 1,
-                }
-            },
-        )
-
-        returndata = json.loads(
-            gzip.decompress(base64.b64decode(json.loads(req.text)["d"]))
-        )
-
-        plans = [
-            item
-            for item in returndata["ResultMenuItems"][0]["Childs"]
-            if item["Title"] == "Pläne"
-        ]
-        news = [
-            item
-            for item in returndata["ResultMenuItems"][0]["Childs"]
-            if item["Title"] == "News"
-        ]
-        postings = [
-            item
-            for item in returndata["ResultMenuItems"][0]["Childs"]
-            if item["Title"] == "Aushänge"
-        ]
-
-        return {"plans": plans, "news": news, "postings": postings}
-
-    def get_plans(self):
-        try:
-            raw_plans = self.fetch_data()["plans"][0]["Root"]["Childs"]
-        except IndexError:
-            return []
+    def get_plans(self) -> list:
+        raw_plans = requests.get(BASE_URL + "/dsbtimetables", params=dict(authid=self.token)).json()
         plans = []
         for plan in raw_plans:
             for i in plan["Childs"]:
                 plans.append(
                     {
-                        "is_html": True if i["ConType"] == 3 else False,
+                        "id": i["Id"],
+                        "is_html": True if i["ConType"] == 6 else False,
                         "uploaded_date": i["Date"],
                         "title": i["Title"],
                         "url": i["Detail"],
-                        "preview_url": "https://app.dsbcontrol.de/data/" + i["Preview"],
+                        "preview_url": "https://light.dsbcontrol.de/DSBlightWebsite/Data/" + i["Preview"],
                     }
                 )
 
         return plans
 
-    def get_news(self):
-        try:
-            raw_news = self.fetch_data()["news"][0]["Root"]["Childs"]
-        except IndexError:
-            return []
+    def get_news(self) -> list:
+        raw_news = requests.get(BASE_URL + "/newstab", params=dict(authid=self.token)).json()
         news = []
         for i in raw_news:
             news.append(
                 {"title": i["Title"], "date": i["Date"], "content": i["Detail"]}
             )
-
         return news
 
-    def get_postings(self):
-        try:
-            raw_postings = self.fetch_data()["postings"][0]["Root"]["Childs"]
-        except IndexError:
-            return []
+    def get_postings(self) -> list:
+        raw_postings = requests.get(BASE_URL + "/dsbdocuments", params=dict(authid=self.token)).json()
         postings = []
         for posting in raw_postings:
             for i in posting["Childs"]:
                 postings.append(
                     {
+                        "id": i["Id"],
                         "uploaded_date": i["Date"],
                         "title": i["Title"],
                         "url": i["Detail"],
-                        "preview_url": "https://app.dsbcontrol.de/data/" + i["Preview"],
+                        "preview_url": "https://light.dsbcontrol.de/DSBlightWebsite/Data/" + i["Preview"],
                     }
                 )
 
