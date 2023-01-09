@@ -12,7 +12,7 @@ I strongly recommend that users of version 1.0 upgrade to 2.0, because it doesn'
 
 ## Installation
 
-    pip install -U --user pydsb
+    pip install pydsb
 
 ## Usage
 
