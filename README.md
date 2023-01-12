@@ -16,9 +16,9 @@ I strongly recommend that users of version 1.0 upgrade to 2.0, because it doesn'
 
 ## Usage
 
-    import pydsb
+    from pydsb import PyDSB
     
-    dsb = pydsb.PyDSB("username", "password")
+    dsb = PyDSB("username", "password")
     
     print(dsb.get_plans())
     print(dsb.get_postings())
